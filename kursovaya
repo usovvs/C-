@@ -1,0 +1,168 @@
+
+#include <iostream>
+#include <limits>
+#include <cassert>
+
+using namespace std;
+
+// Функция проверки високосного года
+bool isLeapYear(int year) {
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+// Функция определения количества дней в месяце
+int daysInMonth(int year, int month) {
+    if (month == 2) {
+        return isLeapYear(year) ? 29 : 28;
+    } else if (month == 4 || month == 6 || month == 9 || month == 11) {
+        return 30;
+    } else {
+        return 31;
+    }
+}
+
+
+
+// Функция ввода даты с обработкой ошибок
+void inputDate(int& year, int& month, int& day) {
+    do {
+        cout << "Введите год: ";
+        cin >> year;
+
+        if (cin.fail() || year <= 0) {
+            cout << "Некорректный ввод. Введите положительное число.\n";
+            // сброс флага ошибок
+            cin.clear();
+            // игнорировать все символы в буфере ввода до новой строки
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+    } while (year <= 0);
+
+    do {
+        cout << "Введите месяц (число от 1 до 12): ";
+        cin >> month;
+
+        if (cin.fail() || month < 1 || month > 12) {
+            cout << "Некорректный ввод. Введите число от 1 до 12.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+    } while (month < 1 || month > 12);
+
+    do {
+        cout << "Введите день (число от 1 до " << daysInMonth(year, month) << "): ";
+        cin >> day;
+
+        if (cin.fail() || day < 1 || day > daysInMonth(year, month)) {
+            cout << "Некорректный ввод. Введите число от 1 до " << daysInMonth(year, month) << ".\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+    } while (day < 1 || day > daysInMonth(year, month));
+
+    
+}
+
+// Функция расчета разницы в днях между двумя датами
+int calculateDaysDifference(int year1, int month1, int day1, int year2, int month2, int day2) {
+    // Проверка, что вторая дата не меньше первой
+    if (year2 < year1 || (year2 == year1 && month2 < month1) || (year2 == year1 && month2 == month1 && day2 < day1)) {
+        cout << "Ошибка: Вторая дата не может быть раньше первой.\n";
+        exit(EXIT_FAILURE);
+    }
+
+    int daysDifference = 0;
+
+    while (year1 != year2 || month1 != month2 || day1 != day2) {
+        daysDifference++;
+        day1++;
+
+        if (day1 > daysInMonth(year1, month1)) {
+            day1 = 1;
+            month1++;
+
+            if (month1 > 12) {
+                month1 = 1;
+                year1++;
+            }
+        }
+    }
+
+    return daysDifference;
+}
+
+// Функция для тестирования с выбором режима
+void checkDaysDifference(bool automatic) {
+    if (automatic) {
+        // Тест 1
+        int year1 = 2022, month1 = 12, day1 = 1;
+        int year2 = 2022, month2 = 12, day2 = 10;
+        int expectedDifference1 = day2 - day1;
+        int actualDifference1 = calculateDaysDifference(year1, month1, day1, year2, month2, day2);
+        cout << "Тест 1: Ожидаемая разница в днях: " << expectedDifference1 << ", Фактическая разница:" << actualDifference1;
+        assert(actualDifference1 == expectedDifference1);
+        cout << " - Тест " << (actualDifference1 == expectedDifference1 ? "пройден успешно!\n" : "не пройден!\n");
+
+        // Тест 2
+        year1 = 2023, month1 = 1, day1 = 1;
+        year2 = 2023, month2 = 1, day2 = 15;
+        int expectedDifference2 = day2 - day1;
+        int actualDifference2 = calculateDaysDifference(year1, month1, day1, year2, month2, day2);
+        cout << "Тест 2: Ожидаемая разница в днях: " << expectedDifference2 << ", Фактическая разница: " << actualDifference2;
+        assert(actualDifference2 == expectedDifference2);
+        cout << " - Тест " << (actualDifference2 == expectedDifference2 ? "пройден успешно!\n" : "не пройден!\n");
+
+        // Тест 3
+        year1 = 2022, month1 = 12, day1 = 1;
+        year2 = 2023, month2 = 1, day2 = 1;
+        int expectedDifference3 = 31; // Декабрь 2022 + Январь 2023
+        int actualDifference3 = calculateDaysDifference(year1, month1, day1, year2, month2, day2);
+        cout << "Тест 3: Ожидаемая разница в днях: " << expectedDifference3 << ", Фактическая разница: " << actualDifference3;
+        assert(actualDifference3 == expectedDifference3);
+        cout << " - Тест " << (actualDifference3 == expectedDifference3 ? "пройден успешно!\n" : "не пройден!\n");
+
+        // Тест 4
+        year1 = 2020, month1 = 2, day1 = 28;
+        year2 = 2020, month2 = 3, day2 = 1;
+        int expectedDifference4 = 2; // 28 февраля и 29 февраля в високосный год
+        int actualDifference4 = calculateDaysDifference(year1, month1, day1, year2, month2, day2);
+        cout << "Тест 4: Ожидаемая разница в днях: " << expectedDifference4 << ", Фактическая разница: " << actualDifference4;
+        assert(actualDifference4 == expectedDifference4);
+        cout << " - Тест " << (actualDifference4 == expectedDifference4 ? "пройден успешно!\n" : "не пройден!\n");
+
+        // Тест 5
+        year1 = 2021, month1 = 7, day1 = 1;
+        year2 = 2023, month2 = 7, day2 = 1;
+        int expectedDifference5 = 730; // Разница между 1 июля 2021 и 1 июля 2022
+        int actualDifference5 = calculateDaysDifference(year1, month1, day1, year2, month2, day2);
+        cout << "Тест 5: Ожидаемая разница в днях: " << expectedDifference5 << ", Фактическая разница: " << actualDifference5;
+        assert(actualDifference5 == expectedDifference5);
+        cout << " - Тест " << (actualDifference5 == expectedDifference5 ? "пройден успешно!\n" : "не пройден!\n");
+    } else {
+        // Ручной ввод пользователем
+        int year1, month1, day1;
+        int year2, month2, day2;
+
+        cout << "Введите первую дату:\n";
+        inputDate(year1, month1, day1);
+
+        cout << "\nВведите вторую дату:\n";
+        inputDate(year2, month2, day2);
+
+        int daysDifference = calculateDaysDifference(year1, month1, day1, year2, month2, day2);
+
+        cout << "\nКоличество дней между датами: " << daysDifference << endl;
+    }
+}
+
+// Основная функция программы
+int main() {
+    // Выберите, какой режим использовать: true - автоматическая проверка, false - ручной ввод
+    bool useAutomaticCheck = true;
+    //cin >> useAutomaticCheck;
+
+    // Вызываем функцию для тестирования или ручного ввода
+    checkDaysDifference(useAutomaticCheck);
+
+    return 0;
+}
